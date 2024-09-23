@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expense & Income Tracker</title>
+  <title>Ren Red Initial Finances</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -76,13 +76,12 @@
       align-items: center;
     }
     .income {
-      color: green;
+      color: yellowgreen;
     }
     .expense {
       color: red;
     }
-
-    .capital{
+    .capital {
         color: white;
     }
     .confirmation {
@@ -185,15 +184,31 @@
     </div>
   </div>
 
-  <!-- Video section -->
-
-
   <script>
     let incomeTotal = 0;
     let expenseTotal = 0;
     let capitalPiggyBank = 0;
     let transactions = [];
     let deleteIndex = null;
+
+    // Load transactions from localStorage when the page is loaded
+    window.onload = function() {
+      const storedTransactions = localStorage.getItem('transactions');
+      if (storedTransactions) {
+        transactions = JSON.parse(storedTransactions);
+        transactions.forEach(transaction => {
+          if (transaction.type === 'income') {
+            incomeTotal += transaction.amount;
+          } else if (transaction.type === 'expense') {
+            expenseTotal += transaction.amount;
+          } else if (transaction.type === 'capital') {
+            capitalPiggyBank += transaction.amount;
+          }
+          addTransaction(transaction);
+        });
+        updateDisplay();
+      }
+    };
 
     function updateTracker() {
       const incomeInput = document.getElementById('income').value;
@@ -202,8 +217,6 @@
       const expenseDetails = document.getElementById('expense-details').value;
       const capitalInput = document.getElementById('capital-input').value;
       const capitalDetails = document.getElementById('capital-details').value;
-
-      const historyList = document.getElementById('historyList');
 
       // Get current date
       const date = new Date();
@@ -236,11 +249,11 @@
         addTransaction(transaction);
       }
 
-      // Calculate difference (Income - Expenses)
-      const difference = incomeTotal - expenseTotal;
-
       // Update the displayed values
       updateDisplay();
+
+      // Save transactions to localStorage
+      localStorage.setItem('transactions', JSON.stringify(transactions));
 
       // Clear the input fields
       clearInputs();
@@ -257,9 +270,27 @@
       historyList.appendChild(transactionItem);
     }
 
+    function updateDisplay() {
+      document.getElementById('totalIncome').innerText = `Total Income: $${incomeTotal.toFixed(2)}`;
+      document.getElementById('totalExpenses').innerText = `Total Expenses: $${expenseTotal.toFixed(2)}`;
+      document.getElementById('capitalPiggyBank').innerText = `Capital: $${capitalPiggyBank.toFixed(2)}`;
+      document.getElementById('difference').innerText = `Difference (Income - Expenses): $${(incomeTotal - expenseTotal).toFixed(2)}`;
+    }
+
+    function clearInputs() {
+      document.getElementById('income').value = '';
+      document.getElementById('income-details').value = '';
+      document.getElementById('expense').value = '';
+      document.getElementById('expense-details').value = '';
+      document.getElementById('capital-input').value = '';
+      document.getElementById('capital-details').value = '';
+    }
+
     function prepareDeleteTransaction(index) {
       deleteIndex = index;
       document.getElementById('confirmation').style.display = 'flex';
+      document.getElementById('confirmDelete').onclick = deleteTransaction;
+      document.getElementById('cancelDelete').onclick = closeConfirmation;
     }
 
     function deleteTransaction() {
@@ -284,20 +315,11 @@
       updateDisplay();
       renderHistory();
 
+      // Save updated transactions to localStorage
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+
       // Hide the confirmation message
       closeConfirmation();
-    }
-
-    function closeConfirmation() {
-      document.getElementById('confirmation').style.display = 'none';
-      deleteIndex = null;
-    }
-
-    function updateDisplay() {
-      document.getElementById('capitalPiggyBank').innerText = `Capital Piggy Bank: $${capitalPiggyBank.toFixed(2)}`;
-      document.getElementById('difference').innerText = `Difference (Income - Expenses): $${(incomeTotal - expenseTotal).toFixed(2)}`;
-      document.getElementById('totalIncome').innerText = `Total Income: $${incomeTotal.toFixed(2)}`;
-      document.getElementById('totalExpenses').innerText = `Total Expenses: $${expenseTotal.toFixed(2)}`;
     }
 
     function renderHistory() {
@@ -314,19 +336,9 @@
       });
     }
 
-    function clearInputs() {
-      document.getElementById('income').value = '';
-      document.getElementById('income-details').value = '';
-      document.getElementById('expense').value = '';
-      document.getElementById('expense-details').value = '';
-      document.getElementById('capital-input').value = '';
-      document.getElementById('capital-details').value = '';
+    function closeConfirmation() {
+      document.getElementById('confirmation').style.display = 'none';
     }
-
-    document.getElementById('confirmDelete').onclick = deleteTransaction;
-    document.getElementById('cancelDelete').onclick = closeConfirmation;
-
   </script>
-
 </body>
 </html>
